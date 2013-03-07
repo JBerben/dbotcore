@@ -1,5 +1,7 @@
 package org.darkstorm.runescape.api;
 
+import org.darkstorm.runescape.api.input.*;
+
 public interface GameContext {
 	public Calculations getCalculations();
 
@@ -18,4 +20,16 @@ public interface GameContext {
 	public GameObjects getGameObjects();
 
 	public Skills getSkills();
+
+	public Menu getMenu();
+
+	public Bank getBank();
+
+	public Inventory getInventory();
+
+	public Camera getCamera();
+
+	public Walking getWalking();
+
+	public Filters getFilters();
 }

@@ -49,11 +49,19 @@ public class OldSchoolBot implements Bot, EventListener {
 				status.setMessage("Loading...");
 				status.setProgressShown(true);
 				status.setProgress(0);
-				Loader loader = new OldSchoolLoader(OldSchoolBot.this,
-				/*new Random().nextInt(80)*/78);
+				Cache cache = new DirectoryCache(new File("cache"));
+				int world = 1 + (int) (Math.random() * 78);
+				if(cache.isCached("world")) {
+					try {
+						world = Integer.parseInt(new String(cache
+								.loadCache("world")).replace("\n", "").trim());
+					} catch(NumberFormatException exception) {
+						exception.printStackTrace();
+					}
+				}
+				cache.saveCache("world", Integer.toString(world).getBytes());
+				Loader loader = new OldSchoolLoader(OldSchoolBot.this, world);
 				try {
-					Cache cache = /*new EmptyCache();*/new DirectoryCache(
-							new File("cache"));
 					loader.load(cache, status);
 					game = loader.createApplet(cache, status);
 					System.out.println(game.getClass().getField("bot")
@@ -79,7 +87,20 @@ public class OldSchoolBot implements Bot, EventListener {
 	public void onPaint(PaintEvent event) {
 		Graphics g = event.getGraphics();
 		g.setColor(Color.YELLOW);
-		g.drawString("Paint test.", 5, 40);
+		String location = "Unknown";
+		try {
+			Object[] players = (Object[]) game.getClass()
+					.getMethod("getPlayers", new Class<?>[0]).invoke(game);
+			Object player = players[players.length - 1];
+			double x = (Integer) player.getClass().getSuperclass()
+					.getMethod("getX", new Class<?>[0]).invoke(player);
+			double y = (Integer) player.getClass().getSuperclass()
+					.getMethod("getY", new Class<?>[0]).invoke(player);
+			x /= 128D;
+			y /= 128D;
+			location = "(" + x + ", " + y + ")";
+		} catch(Exception exception) {}
+		g.drawString("Your location: " + location, 5, 40);
 	}
 
 	@Override
