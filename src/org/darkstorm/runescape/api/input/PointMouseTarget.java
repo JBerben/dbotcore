@@ -36,4 +36,9 @@ public class PointMouseTarget implements MouseTarget {
 		return Math.sqrt(Math.pow(point.x - this.point.x, 2)
 				+ Math.pow(point.y - this.point.y, 2)) <= randomness;
 	}
+
+	@Override
+	public MouseTarget getTarget() {
+		return this;
+	}
 }

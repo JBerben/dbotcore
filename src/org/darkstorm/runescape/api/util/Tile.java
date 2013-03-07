@@ -1,7 +1,5 @@
 package org.darkstorm.runescape.api.util;
 
-import org.darkstorm.runescape.api.wrapper.Locatable;
-
 public final class Tile implements Locatable, Cloneable {
 	private final int x, y, plane;
 
@@ -39,6 +37,12 @@ public final class Tile implements Locatable, Cloneable {
 	@Override
 	public Tile getLocation() {
 		return this;
+	}
+
+	public double distanceTo(Locatable locatable) {
+		Tile tile = locatable.getLocation();
+		return Math.sqrt(Math.pow(x - tile.getX(), 2)
+				+ Math.pow(y - tile.getY(), 2));
 	}
 
 	@Override

@@ -5,15 +5,15 @@ import java.awt.Point;
 public interface Mouse {
 	public Point getLocation();
 
-	public void hover(MouseTarget target);
+	public void hover(MouseTargetable target);
 
-	public void hover(MouseTarget target, int timeout);
+	public void hover(MouseTargetable target, int timeout);
 
-	public void move(MouseTarget target);
+	public void move(MouseTargetable target);
 
-	public void click(MouseTarget target);
+	public void click(MouseTargetable target);
 
-	public void click(MouseTarget target, boolean left);
+	public void click(MouseTargetable target, boolean left);
 
 	public boolean isActive();
 

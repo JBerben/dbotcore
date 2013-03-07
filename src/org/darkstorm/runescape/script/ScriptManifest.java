@@ -12,5 +12,7 @@ public @interface ScriptManifest {
 
 	public String version();
 
+	public String description() default "No description.";
+
 	public GameType[] support() default { GameType.CURRENT, GameType.OLDSCHOOL };
 }

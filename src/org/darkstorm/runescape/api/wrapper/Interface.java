@@ -1,11 +1,11 @@
 package org.darkstorm.runescape.api.wrapper;
 
-public interface Interface extends Wrapper {
+import org.darkstorm.runescape.api.util.Identifiable;
+
+public interface Interface extends Identifiable, Wrapper {
 	public InterfaceComponent[] getComponents();
 
 	public InterfaceComponent getComponent(int id);
-
-	public int getIndex();
 
 	public boolean isValid();
 }

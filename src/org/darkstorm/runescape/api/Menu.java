@@ -5,9 +5,9 @@ public interface Menu extends Utility {
 
 	public String[] getActions();
 
-	public boolean doAction(String action);
+	public boolean perform(String action);
 
-	public boolean doAction(int index);
+	public boolean perform(int index);
 
 	public boolean isOpen();
 

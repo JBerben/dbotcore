@@ -4,7 +4,7 @@ import org.darkstorm.runescape.GameType;
 import org.darkstorm.runescape.api.input.MouseTarget;
 import org.darkstorm.runescape.api.tab.SettingsTab;
 import org.darkstorm.runescape.api.util.Tile;
-import org.darkstorm.runescape.api.wrapper.*;
+import org.darkstorm.runescape.api.wrapper.InterfaceComponent;
 import org.darkstorm.runescape.util.GameTypeSupport;
 
 public interface Walking extends Utility, SettingsTab {
@@ -14,16 +14,14 @@ public interface Walking extends Utility, SettingsTab {
 
 	public void walkPath(Tile[] path);
 
-	public void walkToLocally(Tile destination);
+	public void walkTo(Tile destination);
 
-	public void walkToGlobally(Tile destination);
+	public Tile[] generatePath(Tile destination);
 
-	public Tile[] generateLocalPath(Tile destination);
-
-	public Tile[] generateGlobalPath(Tile destination);
-
+	@Override
 	public boolean isRunning();
 
+	@Override
 	public void setRunning(boolean running);
 
 	@GameTypeSupport(GameType.CURRENT)

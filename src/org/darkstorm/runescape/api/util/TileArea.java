@@ -59,6 +59,11 @@ public final class TileArea implements Cloneable {
 		return endpoint;
 	}
 
+	public Tile getRandomTileInside() {
+		return new Tile(x + (int) (Math.random() * width), y
+				+ (int) (Math.random() * height));
+	}
+
 	public boolean contains(Tile tile) {
 		return contains(tile.getX(), tile.getY());
 	}

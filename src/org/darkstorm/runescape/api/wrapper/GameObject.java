@@ -3,7 +3,7 @@ package org.darkstorm.runescape.api.wrapper;
 import java.awt.Point;
 
 import org.darkstorm.runescape.api.input.*;
-import org.darkstorm.runescape.api.util.Tile;
+import org.darkstorm.runescape.api.util.*;
 
 public interface GameObject extends MouseTargetable, Locatable, Wrapper {
 	public enum GameObjectType {

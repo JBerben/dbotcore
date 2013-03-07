@@ -1,7 +1,7 @@
 package org.darkstorm.runescape.api.wrapper;
 
 public interface Player extends Character, Wrapper {
-	public String getName();
+	public int getTeam();
 
-	public Model getModel();
+	public int[] getAppearance();
 }

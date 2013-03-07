@@ -1,20 +1,11 @@
 package org.darkstorm.runescape.api.wrapper;
 
-import java.awt.Point;
+import org.darkstorm.runescape.api.util.*;
 
-import org.darkstorm.runescape.api.input.*;
-import org.darkstorm.runescape.api.util.Tile;
-
-public interface Character extends Animable, MouseTargetable, Locatable,
-		Wrapper {
-	@Override
-	public Tile getLocation();
-
+public interface Character extends Animable, Nameable, Rotatable {
 	public Tile[] getWaypoints();
 
 	public String getOverheadMessage();
-
-	public double getRotation();
 
 	public int getAnimation();
 
@@ -22,16 +13,19 @@ public interface Character extends Animable, MouseTargetable, Locatable,
 
 	public boolean isInCombat();
 
+	public int getHealthPercentage();
+
+	public boolean isDead();
+
 	public int getMotion();
 
 	public boolean isMoving();
 
 	public Character getInteractionTarget();
 
-	public boolean isOnScreen();
+	public int getLevel();
 
-	public Point getScreenLocation();
+	public Model getModel();
 
-	@Override
-	public MouseTarget getTarget();
+	public int getPrayerIcon();
 }

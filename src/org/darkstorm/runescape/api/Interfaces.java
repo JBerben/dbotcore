@@ -6,12 +6,11 @@ import org.darkstorm.runescape.api.wrapper.*;
 public interface Interfaces extends TypedUtility<Interface> {
 	public boolean interfaceExists(Filter<Interface> filter);
 
-	public boolean interfaceComponentExists(Filter<InterfaceComponent> filter);
+	public boolean interfaceComponentExists(int id, int childId);
 
-	public Interface getInterface(Filter<Interface> filter);
+	public Interface getInterface(int id);
 
-	public InterfaceComponent getInterfaceComponent(
-			Filter<InterfaceComponent> filter);
+	public InterfaceComponent getComponent(int id, int childId);
 
 	public Interface[] getInterfaces();
 }

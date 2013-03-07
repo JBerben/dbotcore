@@ -2,10 +2,14 @@ package org.darkstorm.runescape.api.wrapper;
 
 import java.awt.*;
 
-import org.darkstorm.runescape.api.input.*;
+import org.darkstorm.runescape.api.input.MouseTargetable;
+import org.darkstorm.runescape.api.util.*;
 
-public interface InterfaceComponent extends MouseTargetable, Wrapper {
+public interface InterfaceComponent extends Identifiable, Interactable,
+		Displayable, MouseTargetable, Wrapper {
 	public InterfaceComponent[] getChildren();
+
+	public InterfaceComponent getChild(int id);
 
 	public Item[] getItems();
 
@@ -50,7 +54,4 @@ public interface InterfaceComponent extends MouseTargetable, Wrapper {
 	public int getModelType();
 
 	public boolean isValid();
-
-	@Override
-	public MouseTarget getTarget();
 }

@@ -1,7 +1,7 @@
 package org.darkstorm.runescape.api.wrapper;
 
-public interface Item extends Wrapper {
-	public int getId();
+import org.darkstorm.runescape.api.util.*;
 
+public interface Item extends Identifiable, Displayable, Wrapper {
 	public int getStackSize();
 }

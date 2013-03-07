@@ -1,6 +1,6 @@
 package org.darkstorm.runescape.api;
 
-import org.darkstorm.runescape.api.util.Tile;
+import org.darkstorm.runescape.api.util.Locatable;
 
 public interface Camera extends Utility {
 	public enum Direction {
@@ -14,13 +14,15 @@ public interface Camera extends Utility {
 
 	public double getAngleY();
 
-	public double getAngleXTo(Tile tile);
+	public double getAngleXTo(Locatable locatable);
 
 	public void setAngleX(double angle);
 
-	public void setAngleXTo(Tile tile);
+	public void setAngleXTo(Locatable locatable);
 
 	public void setAngleY(double angle);
+
+	public void turnTo(Locatable locatable);
 
 	public void setCompassDirection(Direction direction);
 }
