@@ -387,7 +387,13 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		@Override
 		public void run() {
 			try {
-				task.run();
+				while(task.activate()) {
+					try {
+						task.run();
+					} catch(Throwable throwable) {
+						reportError(throwable);
+					}
+				}
 			} catch(Throwable throwable) {
 				reportError(throwable);
 			}

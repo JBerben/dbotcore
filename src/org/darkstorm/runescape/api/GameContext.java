@@ -1,5 +1,6 @@
 package org.darkstorm.runescape.api;
 
+import org.darkstorm.runescape.Bot;
 import org.darkstorm.runescape.api.input.*;
 
 public interface GameContext {
@@ -32,4 +33,6 @@ public interface GameContext {
 	public Walking getWalking();
 
 	public Filters getFilters();
+
+	public Bot getBot();
 }
