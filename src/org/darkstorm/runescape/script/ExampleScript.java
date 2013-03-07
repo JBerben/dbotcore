@@ -2,7 +2,7 @@ package org.darkstorm.runescape.script;
 
 import org.darkstorm.runescape.*;
 
-@ScriptManifest(name = "Example Script", author = "DarkStorm", version = "1.0.0", support = {
+@ScriptManifest(name = "Example Script", authors = "DarkStorm", version = "1.0.0", support = {
 		GameType.CURRENT, GameType.OLDSCHOOL })
 public class ExampleScript extends AbstractScript {
 

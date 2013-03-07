@@ -8,9 +8,9 @@ import org.darkstorm.runescape.GameType;
 public @interface ScriptManifest {
 	public String name();
 
-	public String author();
+	public String[] authors();
 
 	public String version();
 
-	public GameType[] support();
+	public GameType[] support() default { GameType.CURRENT, GameType.OLDSCHOOL };
 }
