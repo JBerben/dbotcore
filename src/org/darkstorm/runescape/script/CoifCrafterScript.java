@@ -155,7 +155,7 @@ public class CoifCrafterScript extends AbstractScript {
 						}
 					}
 				} else {
-					jack.interact("Tan-hide");
+					menu.perform(jack, "Tan-hide");
 					sleep(1000, 1500);
 					return;
 				}
@@ -205,12 +205,12 @@ public class CoifCrafterScript extends AbstractScript {
 					comp = comp.getChild(0);
 				if(comp != null && comp.getText() != null
 						&& comp.getText().startsWith("Jack Oval")) {
-					inventory.getItem(filters.item(COIF_ID)).getComponent()
-							.interact("Sell 50");
+					menu.perform(inventory.getItem(filters.item(COIF_ID))
+							.getComponent(), "Sell 50");
 					sleep(1000, 1500);
 					return;
 				} else {
-					jack.interact("Trade");
+					menu.perform(jack, "Trade");
 					sleep(1000, 1500);
 					return;
 				}
@@ -246,7 +246,7 @@ public class CoifCrafterScript extends AbstractScript {
 				if(closestHide != null) {
 					logger.info("Taking hide...");
 					if(closestHide.isOnScreen())
-						closestHide.interact("Take Cowhide");
+						menu.perform(closestHide, "Take Cowhide");
 					else
 						camera.turnTo(closestHide);
 					sleep(500, 1500);
@@ -267,7 +267,7 @@ public class CoifCrafterScript extends AbstractScript {
 				if(closestCow != null) {
 					logger.info("Attacking...");
 					if(closestCow.isOnScreen())
-						closestCow.interact("Attack");
+						menu.perform(closestCow, "Attack");
 					else
 						camera.turnTo(closestCow);
 					sleep(250, 500);

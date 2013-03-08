@@ -5,8 +5,8 @@ import java.awt.*;
 import org.darkstorm.runescape.api.input.MouseTargetable;
 import org.darkstorm.runescape.api.util.*;
 
-public interface InterfaceComponent extends Identifiable, Interactable,
-		Displayable, MouseTargetable, Wrapper {
+public interface InterfaceComponent extends Identifiable, Displayable,
+		MouseTargetable, Wrapper {
 	public InterfaceComponent[] getChildren();
 
 	public InterfaceComponent getChild(int id);
