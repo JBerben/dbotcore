@@ -253,7 +253,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	}
 
 	@Override
-	public <T extends Task> T getTask(Class<T> taskClass) {
+	public final <T extends Task> T getTask(Class<T> taskClass) {
 		synchronized(tasks) {
 			for(Task task : tasks.keySet())
 				if(taskClass.equals(task.getClass()))
