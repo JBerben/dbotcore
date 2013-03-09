@@ -9,6 +9,8 @@ public interface TaskManager {
 
 	public void stop(Task task);
 
+	public <T extends Task> T getTask(Class<T> taskClass);
+
 	public Task[] getRegisteredTasks();
 
 	public Task[] getActiveTasks();
