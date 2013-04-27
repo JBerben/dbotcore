@@ -1,4 +1,6 @@
-package org.darkstorm.runescape.event;
+package org.darkstorm.runescape.event.game;
+
+import org.darkstorm.runescape.event.Event;
 
 
 public class ServerMessageEvent extends Event {

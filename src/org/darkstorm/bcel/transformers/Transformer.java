@@ -171,13 +171,16 @@ public abstract class Transformer {
 
 	protected void addGetter(ClassGen classGen, String interfaceName,
 			Field field, String name) {
-		if(field.isStatic())
+		String className = classGen.getClassName();
+		if(field.isStatic()) {
 			interfaceName = "Client";
+			className = "client";
+		}
 		Type fieldType = field.getType();
 		String returnType = getInterfaceClassNameIfExists(fieldType.toString());
-		hooks.add(new GetterHook(classGen.getClassName(), updater
-				.getHooksPackage() + interfaceName, field.getName(), field
-				.getSignature(), field.isStatic(), returnType, name));
+		hooks.add(new GetterHook(className, updater.getHooksPackage()
+				+ interfaceName, classGen.getClassName(), field.getName(),
+				field.getSignature(), field.isStatic(), returnType, name));
 	}
 
 	protected void addSetter(FieldInstruction fi, String interfaceName,

@@ -1,15 +1,17 @@
 package org.darkstorm.runescape.api.input;
 
-public interface Keyboard {
+import org.darkstorm.runescape.api.*;
+
+public interface Keyboard extends Utility {
 	public void typeKey(char key);
 
-	public void typeMessage(String message);
+	public void typeMessage(String message, boolean pressEnter);
 
-	public void typeMessage(String message, int delay);
+	public void pressKey(char key);
 
-	public void typeMessage(String message, int delayLow, int delayHigh);
+	public void releaseKey(char key);
 
-	public void holdKey(char key);
+	public void holdKey(char key, int duration);
 
 	public boolean isActive();
 
@@ -18,4 +20,6 @@ public interface Keyboard {
 	public boolean await();
 
 	public boolean await(int timeout);
+
+	public GameContext getGameContext();
 }

@@ -7,8 +7,8 @@ import org.darkstorm.runescape.oldschool.MMIRepository;
 import org.jdom.Element;
 
 public class GetterHook extends Hook {
-	private String className, interfaceName, fieldName, fieldSignature,
-			returnType, getterName;
+	private String className, interfaceName, fieldName, fieldClassName,
+			fieldSignature, returnType, getterName;
 	private boolean isStatic;
 
 	public GetterHook(Element element) {
@@ -20,6 +20,20 @@ public class GetterHook extends Hook {
 			String getterName) {
 		this.className = className;
 		this.interfaceName = interfaceName;
+		fieldClassName = className;
+		this.fieldName = fieldName;
+		this.fieldSignature = fieldSignature;
+		this.isStatic = isStatic;
+		this.returnType = returnType;
+		this.getterName = getterName;
+	}
+
+	public GetterHook(String className, String interfaceName,
+			String fieldClassName, String fieldName, String fieldSignature,
+			boolean isStatic, String returnType, String getterName) {
+		this.className = className;
+		this.interfaceName = interfaceName;
+		this.fieldClassName = fieldClassName;
 		this.fieldName = fieldName;
 		this.fieldSignature = fieldSignature;
 		this.isStatic = isStatic;
@@ -45,6 +59,10 @@ public class GetterHook extends Hook {
 		return interfaceName;
 	}
 
+	public String getFieldClassName() {
+		return fieldClassName;
+	}
+
 	public String getFieldName() {
 		return fieldName;
 	}
@@ -62,6 +80,7 @@ public class GetterHook extends Hook {
 		Element element = new Element("getter");
 		element.setAttribute("class", className);
 		element.setAttribute("field", fieldName);
+		element.setAttribute("fieldclass", fieldClassName);
 		element.setAttribute("signature", fieldSignature);
 		element.setAttribute("static", Boolean.toString(isStatic));
 		element.setAttribute("return", returnType);
@@ -73,6 +92,7 @@ public class GetterHook extends Hook {
 	protected void fromXML(Element element) {
 		className = element.getAttributeValue("class");
 		fieldName = element.getAttributeValue("field");
+		fieldClassName = element.getAttributeValue("fieldclass");
 		fieldSignature = element.getAttributeValue("signature");
 		isStatic = Boolean.valueOf(element.getAttributeValue("static"));
 		returnType = element.getAttributeValue("return");
@@ -92,16 +112,17 @@ public class GetterHook extends Hook {
 				classGen.getClassName(), list, cp);
 		InstructionFactory factory = new InstructionFactory(classGen, cp);
 		if(returnType.equals(Type.INT) || returnType.equals(Type.LONG)) {
-			list.append(factory.createConstant(className));
+			list.append(factory.createConstant(fieldClassName));
 			list.append(factory.createConstant(fieldName));
 		}
 		if(!isStatic) {
 			list.append(new ALOAD(0));
-			list.append(factory.createFieldAccess(className, fieldName,
+			list.append(factory.createFieldAccess(fieldClassName, fieldName,
 					Type.getType(fieldSignature), Constants.GETFIELD));
 		} else
-			list.append(factory.createFieldAccess(className, fieldName,
-					Type.getType(fieldSignature), Constants.GETSTATIC));if(returnType.equals(Type.INT) || returnType.equals(Type.LONG))
+			list.append(factory.createFieldAccess(fieldClassName, fieldName,
+					Type.getType(fieldSignature), Constants.GETSTATIC));
+		if(returnType.equals(Type.INT) || returnType.equals(Type.LONG))
 			list.append(factory.createInvoke(MMIRepository.class.getName(),
 					"calculateProduct", returnType, new Type[] { Type.STRING,
 							Type.STRING, returnType }, Constants.INVOKESTATIC));

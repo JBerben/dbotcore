@@ -6,20 +6,25 @@ import org.darkstorm.runescape.api.util.Tile;
 import org.darkstorm.runescape.util.GameTypeSupport;
 
 public interface Game extends Utility {
+	public static enum GameState {
+		LOGIN,
+		CONNECTING,
+		INITIATION,
+		INGAME,
+		UNKNOWN
+	}
+
 	public Tab[] getTabs();
 
 	public Tab getOpenTab();
 
 	public Tab getTab(String name);
 
-	public Tab getTab(Class<? extends Tab> tabClass);
+	public <T extends Tab> T getTab(Class<T> tabClass);
 
-	public void openTab(Tab tab);
+	public int getRegionBaseX();
 
-	public int getSelectedTabIndex();
-
-	@GameTypeSupport(GameType.CURRENT)
-	public void closeCurrentTab();
+	public int getRegionBaseY();
 
 	public int getHealthPercentage();
 
@@ -52,7 +57,9 @@ public interface Game extends Utility {
 
 	public int getCurrentFloor();
 
-	public int getGameState();
+	public int[][] getTileCollisionData();
+
+	public GameState getGameState();
 
 	@GameTypeSupport(GameType.CURRENT)
 	public boolean isInFixedMode();

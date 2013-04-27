@@ -9,9 +9,11 @@ public interface Character extends Animable, Nameable, Rotatable {
 
 	public int getAnimation();
 
-	public boolean isHitting();
-
 	public boolean isInCombat();
+
+	public int getHealth();
+
+	public int getMaxHealth();
 
 	public int getHealthPercentage();
 
@@ -24,8 +26,4 @@ public interface Character extends Animable, Nameable, Rotatable {
 	public Character getInteractionTarget();
 
 	public int getLevel();
-
-	public Model getModel();
-
-	public int getPrayerIcon();
 }

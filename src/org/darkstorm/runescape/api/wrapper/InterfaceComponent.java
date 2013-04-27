@@ -11,7 +11,11 @@ public interface InterfaceComponent extends Identifiable, Displayable,
 
 	public InterfaceComponent getChild(int id);
 
-	public Item[] getItems();
+	public InterfaceComponent getChild(Filter<InterfaceComponent> filter);
+
+	public int[] getItemIds();
+
+	public int[] getItemStackSizes();
 
 	public boolean hasParent();
 
@@ -27,31 +31,31 @@ public interface InterfaceComponent extends Identifiable, Displayable,
 
 	public String getText();
 
+	public String getTooltip();
+
 	public String[] getActions();
+
+	public String getSelectedAction();
 
 	public int getTextColor();
 
-	public Item getContainedItem();
+	public int getContainedItemId();
 
-	public String getContainedItemName();
+	public int getContainedItemStackSize();
+
+	public boolean isInventory();
 
 	public int getTextureId();
 
-	public int getHorizontalScrollBarSize();
+	public int getScrollPosition();
 
-	public int getHorizontalScrollBarThumbPosition();
-
-	public int getHorizontalScrollBarThumbSize();
-
-	public int getVerticalScrollBarSize();
-
-	public int getVerticalScrollBarThumbPosition();
-
-	public int getVerticalScrollBarThumbSize();
+	public int getScrollHeight();
 
 	public int getModelId();
 
 	public int getModelType();
+
+	public int getType();
 
 	public boolean isValid();
 }

@@ -12,6 +12,8 @@ public @interface ScriptManifest {
 
 	public String version();
 
+	public ScriptCategory category() default ScriptCategory.OTHER;
+
 	public String description() default "No description.";
 
 	public GameType[] support() default { GameType.CURRENT, GameType.OLDSCHOOL };

@@ -10,11 +10,16 @@ import org.darkstorm.runescape.Bot;
 import org.darkstorm.runescape.api.*;
 import org.darkstorm.runescape.api.input.*;
 import org.darkstorm.runescape.event.EventListener;
+import org.darkstorm.runescape.event.script.*;
 
-public abstract class AbstractScript implements Script, Runnable, EventListener {
+public abstract class AbstractScript implements Script, Runnable,
+		TaskManager<Task>, EventListener {
 	protected final Bot bot;
+	protected final ScriptManager manager;
+	protected final GameContext context;
 
 	protected final Calculations calculations;
+	protected final Game game;
 	protected final Players players;
 	protected final NPCs npcs;
 	protected final GameObjects gameObjects;
@@ -28,6 +33,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	protected final Walking walking;
 	protected final Mouse mouse;
 	protected final Keyboard keyboard;
+	protected final Settings settings;
 	protected final Filters filters;
 
 	protected final Logger logger;
@@ -39,11 +45,17 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	private final AtomicBoolean paused;
 	private final Lock stateLock;
 
-	public AbstractScript(Bot bot) {
-		this.bot = bot;
+	private int refreshDelay = 50;
 
-		GameContext context = bot.getGameContext();
+	public AbstractScript(ScriptManager manager) {
+		if(manager == null)
+			throw new NullPointerException();
+		this.manager = manager;
+		bot = manager.getBot();
+
+		context = bot.getGameContext();
 		calculations = context.getCalculations();
+		game = context.getGame();
 		players = context.getPlayers();
 		npcs = context.getNPCs();
 		gameObjects = context.getGameObjects();
@@ -57,6 +69,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		walking = context.getWalking();
 		mouse = context.getMouse();
 		keyboard = context.getKeyboard();
+		settings = context.getSettings();
 		filters = context.getFilters();
 
 		logger = Logger.getLogger(getManifest().name());
@@ -74,7 +87,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		stateLock.lock();
 		try {
 			if(active.get())
-				throw new IllegalStateException();
+				return;
 			active.set(true);
 
 			try {
@@ -84,6 +97,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 				active.set(false);
 				return;
 			}
+			bot.getEventManager().sendEvent(new ScriptStartEvent(this));
 			future.set(service.submit(this));
 
 			bot.getEventManager().registerListener(this);
@@ -97,7 +111,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		stateLock.lock();
 		try {
 			if(!active.get())
-				throw new IllegalStateException();
+				return;
 			active.set(false);
 
 			bot.getEventManager().unregisterListener(this);
@@ -115,6 +129,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 			} catch(Throwable throwable) {
 				reportError(throwable);
 			}
+			bot.getEventManager().sendEvent(new ScriptStopEvent(this));
 		} finally {
 			stateLock.unlock();
 		}
@@ -125,7 +140,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		stateLock.lock();
 		try {
 			if(!active.get() || paused.get())
-				throw new IllegalStateException();
+				return;
 			paused.set(true);
 
 			Future<?> future = this.future.get();
@@ -140,6 +155,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 			} catch(Throwable throwable) {
 				reportError(throwable);
 			}
+			bot.getEventManager().sendEvent(new ScriptPauseEvent(this));
 		} finally {
 			stateLock.unlock();
 		}
@@ -150,7 +166,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		stateLock.lock();
 		try {
 			if(!active.get() || !paused.get())
-				throw new IllegalStateException();
+				return;
 			paused.set(false);
 
 			try {
@@ -158,6 +174,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 			} catch(Throwable throwable) {
 				reportError(throwable);
 			}
+			bot.getEventManager().sendEvent(new ScriptResumeEvent(this));
 			future.set(service.submit(this));
 		} finally {
 			stateLock.unlock();
@@ -187,29 +204,33 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	@Override
 	public final void run() {
 		if(!active.get())
-			throw new IllegalStateException();
-		Future<?> future = this.future.get();
-		if(future != null && !future.isDone())
-			throw new IllegalStateException();
-		while(active.get() && !paused.get()) {
+			return;
+		// Future<?> future = this.future.get();
+		// if(future != null && !future.isDone())
+		// throw new IllegalStateException();
+		activeLoop: while(active.get() && !paused.get()) {
+			List<TaskContainer> taskContainers;
 			synchronized(tasks) {
-				for(TaskContainer task : tasks.values()) {
-					try {
-						if(!task.isActive() && task.getTask().activate())
-							task.setFuture(service.submit(task));
-					} catch(Throwable throwable) {
-						reportError(throwable);
-					}
+				taskContainers = new ArrayList<>(tasks.values());
+			}
+			for(TaskContainer task : taskContainers) {
+				try {
+					if(!task.isActive() && task.getTask().activate())
+						task.setFuture(service.submit(task));
+				} catch(Throwable throwable) {
+					if(throwable instanceof ThreadDeath)
+						continue activeLoop;
+					reportError(throwable);
 				}
 			}
-			sleep(25);
+			sleep(refreshDelay);
 		}
 	}
 
 	@Override
 	public final void register(Task task) {
 		if(!active.get())
-			throw new IllegalStateException();
+			return;
 		if(task == null)
 			throw new NullPointerException();
 		synchronized(tasks) {
@@ -222,7 +243,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	@Override
 	public final void deregister(Task task) {
 		if(!active.get())
-			throw new IllegalStateException();
+			return;
 		if(task == null)
 			throw new NullPointerException();
 		synchronized(tasks) {
@@ -233,7 +254,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	@Override
 	public final void stop(Task task) {
 		if(!active.get())
-			throw new IllegalStateException();
+			return;
 		if(task == null)
 			throw new NullPointerException();
 		synchronized(tasks) {
@@ -244,7 +265,7 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	@Override
 	public final boolean isActive(Task task) {
 		if(!active.get())
-			throw new IllegalStateException();
+			return false;
 		if(task == null)
 			throw new NullPointerException();
 		synchronized(tasks) {
@@ -256,9 +277,20 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	public final <T extends Task> T getTask(Class<T> taskClass) {
 		synchronized(tasks) {
 			for(Task task : tasks.keySet())
-				if(taskClass.equals(task.getClass()))
+				if(task instanceof BranchTask)
+					return getTask((BranchTask) task, taskClass);
+				else if(taskClass.equals(task.getClass()))
 					return taskClass.cast(task);
 		}
+		return null;
+	}
+
+	private <T extends Task> T getTask(BranchTask task, Class<T> taskClass) {
+		for(Task subtask : task.getTasks())
+			if(subtask instanceof BranchTask)
+				return getTask((BranchTask) subtask, taskClass);
+			else if(taskClass.equals(task.getClass()))
+				return taskClass.cast(task);
 		return null;
 	}
 
@@ -278,18 +310,26 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		return activeTasks.toArray(new Task[activeTasks.size()]);
 	}
 
-	private final void reportError(Throwable throwable) {
+	protected void reportError(Throwable throwable) {
+		if(throwable instanceof ThreadDeath)
+			return;
 		throwable.printStackTrace();
 	}
 
+	protected final int getRefreshDelay() {
+		return refreshDelay;
+	}
+
+	protected final void setRefreshDelay(int refreshDelay) {
+		this.refreshDelay = refreshDelay;
+	}
+
 	protected final void sleep(int time) {
-		try {
-			Thread.sleep(time);
-		} catch(InterruptedException exception) {}
+		calculations.sleep(time);
 	}
 
 	protected final void sleep(int min, int max) {
-		sleep(random(min, max));
+		calculations.sleep(min, max);
 	}
 
 	protected final int random(int min, int max) {
@@ -301,78 +341,8 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	}
 
 	@Override
-	public final Calculations getCalculations() {
-		return calculations;
-	}
-
-	@Override
-	public final Players getPlayers() {
-		return players;
-	}
-
-	@Override
-	public final NPCs getNPCs() {
-		return npcs;
-	}
-
-	@Override
-	public final Mouse getMouse() {
-		return mouse;
-	}
-
-	@Override
-	public final Keyboard getKeyboard() {
-		return keyboard;
-	}
-
-	@Override
-	public final Interfaces getInterfaces() {
-		return interfaces;
-	}
-
-	@Override
-	public final GroundItems getGroundItems() {
-		return groundItems;
-	}
-
-	@Override
-	public final GameObjects getGameObjects() {
-		return gameObjects;
-	}
-
-	@Override
-	public final Skills getSkills() {
-		return skills;
-	}
-
-	@Override
-	public Menu getMenu() {
-		return menu;
-	}
-
-	@Override
-	public Camera getCamera() {
-		return camera;
-	}
-
-	@Override
-	public Bank getBank() {
-		return bank;
-	}
-
-	@Override
-	public Inventory getInventory() {
-		return inventory;
-	}
-
-	@Override
-	public Walking getWalking() {
-		return walking;
-	}
-
-	@Override
-	public Filters getFilters() {
-		return filters;
+	public GameContext getContext() {
+		return context;
 	}
 
 	@Override
@@ -383,6 +353,15 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 	@Override
 	public final Bot getBot() {
 		return bot;
+	}
+
+	@Override
+	public final boolean isTopLevel() {
+		return true;
+	}
+
+	public Logger getLogger() {
+		return logger;
 	}
 
 	private final class TaskContainer implements Runnable {
@@ -397,14 +376,18 @@ public abstract class AbstractScript implements Script, Runnable, EventListener 
 		@Override
 		public void run() {
 			try {
-				while(task.activate()) {
+				while(isActive() && task.activate()) {
 					try {
 						task.run();
 					} catch(Throwable throwable) {
+						if(throwable instanceof ThreadDeath)
+							continue;
 						reportError(throwable);
 					}
 				}
 			} catch(Throwable throwable) {
+				if(throwable instanceof ThreadDeath)
+					return;
 				reportError(throwable);
 			}
 		}

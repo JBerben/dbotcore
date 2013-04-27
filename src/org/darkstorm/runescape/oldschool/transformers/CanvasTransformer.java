@@ -1,9 +1,8 @@
 package org.darkstorm.runescape.oldschool.transformers;
 
+import java.awt.*;
 import java.util.*;
 import java.util.List;
-
-import java.awt.*;
 
 import org.apache.bcel.generic.*;
 import org.darkstorm.bcel.Updater;
@@ -12,6 +11,7 @@ import org.darkstorm.bcel.hooks.bytecode.*;
 import org.darkstorm.bcel.transformers.Transformer;
 import org.darkstorm.runescape.event.*;
 import org.darkstorm.runescape.event.Event;
+import org.darkstorm.runescape.event.internal.CallbackEvent;
 import org.darkstorm.runescape.oldschool.OldSchoolBot;
 import org.darkstorm.runescape.oldschool.overrides.GameCanvas;
 
@@ -67,9 +67,9 @@ public class CanvasTransformer extends Transformer {
 		instructions.add(new BCELInstruction(ALOAD.class, 2));
 		instructions.add(new AddConstInstruction(EventManager.class.getName(),
 				"sendEvent", "(" + Type.getType(Event.class).getSignature()
-						+ ")V", AddConstInstruction.METHODREF));
-		instructions.add(new BCELInstruction(INVOKEVIRTUAL.class,
-				BCELInstruction.NEW_CONSTANT_ARGUMENT));
+						+ ")V", AddConstInstruction.INTERFACE_METHODREF));
+		instructions.add(new BCELInstruction(INVOKEINTERFACE.class,
+				BCELInstruction.NEW_CONSTANT_ARGUMENT, 2));
 
 		instructions.add(new BCELInstruction(ALOAD.class, 2));
 		instructions.add(new AddConstInstruction(CallbackEvent.class.getName(),

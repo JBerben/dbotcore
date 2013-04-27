@@ -5,10 +5,12 @@ import java.awt.Point;
 import org.darkstorm.runescape.api.input.*;
 import org.darkstorm.runescape.api.util.*;
 
-public interface GameObject extends MouseTargetable, Locatable, Wrapper {
+public interface GameObject extends MouseTargetable, Locatable,
+		ScreenLocatable, Wrapper {
 	public enum GameObjectType {
 		INTERACTIVE,
 		DECORATION,
+		GROUND,
 		BOUNDARY,
 		OTHER
 	}
@@ -20,8 +22,10 @@ public interface GameObject extends MouseTargetable, Locatable, Wrapper {
 	@Override
 	public MouseTarget getTarget();
 
+	@Override
 	public boolean isOnScreen();
 
+	@Override
 	public Point getScreenLocation();
 
 	public Model getModel();

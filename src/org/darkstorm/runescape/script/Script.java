@@ -3,8 +3,10 @@ package org.darkstorm.runescape.script;
 import org.darkstorm.runescape.Bot;
 import org.darkstorm.runescape.api.GameContext;
 
-public interface Script extends GameContext, TaskManager {
+public interface Script {
 	public ScriptManifest getManifest();
+
+	public GameContext getContext();
 
 	public Bot getBot();
 
@@ -19,4 +21,6 @@ public interface Script extends GameContext, TaskManager {
 	public boolean isPaused();
 
 	public boolean isActive();
+
+	public boolean isTopLevel();
 }

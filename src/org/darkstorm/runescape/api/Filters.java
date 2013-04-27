@@ -2,8 +2,9 @@ package org.darkstorm.runescape.api;
 
 import org.darkstorm.runescape.api.util.*;
 import org.darkstorm.runescape.api.wrapper.*;
+import org.darkstorm.runescape.api.wrapper.GameObject.GameObjectType;
 
-public interface Filters {
+public interface Filters extends Utility {
 	public Filter<NPC> npc(int... ids);
 
 	public Filter<NPC> npc(String... names);
@@ -14,9 +15,25 @@ public interface Filters {
 
 	public Filter<GameObject> object(int... ids);
 
+	public Filter<GameObject> object(GameObjectType... types);
+
 	public Filter<Item> item(int... ids);
 
 	public Filter<Item> item(String... names);
+
+	public Filter<Interface> inter(int... ids);
+
+	public Filter<Interface> inter(String... text);
+
+	public Filter<InterfaceComponent> component(int id, int... childIds);
+
+	public Filter<InterfaceComponent> component(String... text);
+
+	public Filter<InterfaceComponent> component(Filter<Interface> filter,
+			int... childIds);
+
+	public Filter<InterfaceComponent> component(Filter<Interface> filter,
+			String... text);
 
 	public <T extends Identifiable> Filter<T> id(int... id);
 
@@ -24,16 +41,9 @@ public interface Filters {
 
 	public <T extends Locatable> Filter<T> range(int range);
 
-	public <T extends Locatable> Filter<T> range(Filter<T> filter, int range);
-
 	public <T extends Locatable> Filter<T> range(Locatable origin, int range);
 
-	public <T extends Locatable> Filter<T> range(Filter<T> filter,
-			Locatable origin, int range);
-
 	public <T extends Locatable> Filter<T> area(TileArea area);
-
-	public <T extends Locatable> Filter<T> area(Filter<T> filter, TileArea area);
 
 	public <T> Filter<T> all();
 
@@ -44,4 +54,9 @@ public interface Filters {
 	public <T> Filter<T> none(TypedUtility<T> utility);
 
 	public <T> Filter<T> inverse(Filter<T> filter);
+
+	public <T> Filter<T> chain(Filter<T> filter1, Filter<T> filter2);
+
+	public <T> Filter<T> chain(
+			@SuppressWarnings("unchecked") Filter<T>... filters);
 }

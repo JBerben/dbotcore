@@ -1,6 +1,8 @@
-package org.darkstorm.runescape.event;
+package org.darkstorm.runescape.event.game;
 
 import java.awt.Graphics;
+
+import org.darkstorm.runescape.event.Event;
 
 public class PaintEvent extends Event {
 	private final Graphics graphics;

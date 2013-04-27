@@ -1,4 +1,6 @@
-package org.darkstorm.runescape.event;
+package org.darkstorm.runescape.event.internal;
+
+import org.darkstorm.runescape.event.Event;
 
 public class CallbackEvent extends Event {
 	private String callback;

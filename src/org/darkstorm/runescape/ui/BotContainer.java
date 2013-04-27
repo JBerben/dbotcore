@@ -10,6 +10,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import org.darkstorm.runescape.*;
+import org.darkstorm.runescape.script.*;
+
 public class BotContainer extends JTabbedPane {
 	private static final long serialVersionUID = -5923476382802695732L;
 	private final RSFrame frame;
@@ -18,53 +21,186 @@ public class BotContainer extends JTabbedPane {
 	private final TabButton play, pause, stop, input, settings;
 	private final TabButton[] buttons;
 
-	private final JPopupMenu settingsMenu;
+	private final JPopupMenu inputMenu;
 
 	public BotContainer(RSFrame frame) {
 		this.frame = frame;
-		play = new TabButton("/play.png", null);
+		play = new TabButton("/play.png", new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Bot bot = getCurrentBot();
+				if(bot != null)
+					new ScriptLoaderFrame(bot);
+			}
+		});
 		play.setEnabled(false);
-		pause = new TabButton("/pause.png", null);
+		pause = new TabButton("/pause.png", new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Bot bot = getCurrentBot();
+				if(bot != null)
+					for(Script script : bot.getScriptManager()
+							.getActiveScripts())
+						if(script.isTopLevel())
+							if(!script.isPaused())
+								script.pause();
+							else
+								script.resume();
+			}
+		});
 		pause.setEnabled(false);
-		stop = new TabButton("/stop.png", null);
+		stop = new TabButton("/stop.png", new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Bot bot = getCurrentBot();
+				if(bot != null) {
+					for(Script script : bot.getScriptManager()
+							.getActiveScripts())
+						if(script.isTopLevel())
+							script.stop();
+				}
+			}
+		});
 		stop.setEnabled(false);
-		input = new TabButton("/keyboard.png", null);
+		input = new TabButton("/keyboard.png", new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Rectangle inputBounds = input.getBounds();
+				inputMenu.show(BotContainer.this, inputBounds.x, inputBounds.y
+						+ inputBounds.height);
+			}
+		});
 		input.setEnabled(false);
 		settings = new TabButton("/settings.png", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Rectangle settingBounds = settings.getBounds();
-				settingsMenu.show(BotContainer.this, settingBounds.x,
-						settingBounds.y + settingBounds.height);
+				BotPanel panel = getCurrentBotPanel();
+				if(panel == null)
+					return;
+				panel.update();
+				panel.getSettingsMenu()
+						.show(BotContainer.this, settingBounds.x,
+								settingBounds.y + settingBounds.height);
 			}
 		});
-		settingsMenu = new JPopupMenu();
-		JMenuItem item = new JMenuItem("Item1");
-		settingsMenu.add(item);
-		item = new JMenuItem("Item2");
-		settingsMenu.add(item);
-		item = new JMenuItem("Item3");
-		settingsMenu.add(item);
-		settingsMenu.add(new JSeparator());
-		item = new JMenuItem("Item4");
-		settingsMenu.add(item);
-		settingsMenu.pack();
+
+		inputMenu = new JPopupMenu();
+		ItemListener inputItemListener = new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange() == ItemEvent.SELECTED) {
+					Bot bot = getCurrentBot();
+					if(bot == null)
+						return;
+					JRadioButtonMenuItem item = (JRadioButtonMenuItem) e
+							.getSource();
+					if(item.getName().equals("None"))
+						bot.setInputState(InputState.NONE);
+					else if(item.getName().equals("Keyboard"))
+						bot.setInputState(InputState.KEYBOARD);
+					else if(item.getName().equals("Mouse/Keyboard"))
+						bot.setInputState(InputState.MOUSE_KEYBOARD);
+				}
+			}
+		};
+		ButtonGroup group = new ButtonGroup();
+		JMenuItem item = new JRadioButtonMenuItem("None");
+		item.addItemListener(inputItemListener);
+		group.add(item);
+		inputMenu.add(item);
+		item = new JRadioButtonMenuItem("Keyboard");
+		item.addItemListener(inputItemListener);
+		group.add(item);
+		inputMenu.add(item);
+		item = new JRadioButtonMenuItem("Mouse/Keyboard", true);
+		item.addItemListener(inputItemListener);
+		group.add(item);
+		inputMenu.add(item);
+		inputMenu.pack();
+
 		buttons = new TabButton[] { play, pause, stop, input, settings };
 
-		addChangeListener(new ChangeListener() {
-
+		Timer timer = new Timer(200, new ActionListener() {
 			@Override
-			public void stateChanged(ChangeEvent e) {
-				int tab = getSelectedIndex();
-				if(tab == -1)
-					return;
-				boolean bot = getComponentAt(tab) instanceof BotPanel;
-				play.setEnabled(bot);
-				pause.setEnabled(bot);
-				stop.setEnabled(bot);
-				input.setEnabled(bot);
+			public void actionPerformed(ActionEvent e) {
+				updateButtonStates();
 			}
 		});
+		timer.setRepeats(true);
+		timer.start();
+
+		addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				updateButtonStates();
+			}
+		});
+	}
+
+	private void updateButtonStates() {
+		Bot bot = getCurrentBot();
+		if(bot != null) {
+			play.setEnabled(bot.canPlayScript());
+			ScriptManager manager = bot.getScriptManager();
+			boolean active = manager.getActiveScripts().length > 0;
+			pause.setEnabled(active);
+			stop.setEnabled(active);
+			input.setEnabled(true);
+
+			switch(bot.getInputState()) {
+			case NONE:
+				((JRadioButtonMenuItem) inputMenu.getComponent(0))
+						.setSelected(true);
+				((JRadioButtonMenuItem) inputMenu.getComponent(1))
+						.setSelected(false);
+				((JRadioButtonMenuItem) inputMenu.getComponent(2))
+						.setSelected(false);
+				break;
+			case KEYBOARD:
+				((JRadioButtonMenuItem) inputMenu.getComponent(0))
+						.setSelected(false);
+				((JRadioButtonMenuItem) inputMenu.getComponent(1))
+						.setSelected(true);
+				((JRadioButtonMenuItem) inputMenu.getComponent(2))
+						.setSelected(false);
+				break;
+			case MOUSE_KEYBOARD:
+				((JRadioButtonMenuItem) inputMenu.getComponent(0))
+						.setSelected(false);
+				((JRadioButtonMenuItem) inputMenu.getComponent(1))
+						.setSelected(false);
+				((JRadioButtonMenuItem) inputMenu.getComponent(2))
+						.setSelected(true);
+				break;
+			}
+
+			BotPanel panel = getCurrentBotPanel();
+			if(panel != null)
+				panel.update();
+		} else {
+			play.setEnabled(false);
+			pause.setEnabled(false);
+			stop.setEnabled(false);
+			input.setEnabled(false);
+		}
+	}
+
+	private Bot getCurrentBot() {
+		Component component = getSelectedComponent();
+		if(component instanceof BotPanel)
+			return ((BotPanel) component).getBot();
+		return null;
+	}
+
+	private BotPanel getCurrentBotPanel() {
+		Component component = getSelectedComponent();
+		if(component instanceof BotPanel)
+			return (BotPanel) component;
+		return null;
 	}
 
 	@Override

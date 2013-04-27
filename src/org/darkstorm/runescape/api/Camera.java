@@ -16,11 +16,19 @@ public interface Camera extends Utility {
 
 	public double getAngleXTo(Locatable locatable);
 
+	public double getAngleYTo(Locatable locatable);
+
 	public void setAngleX(double angle);
 
 	public void setAngleXTo(Locatable locatable);
 
 	public void setAngleY(double angle);
+
+	public void setAngleYTo(Locatable locatable);
+
+	public double getAngleYPercentage();
+
+	public void setAngleYPercentage(double percentage);
 
 	public void turnTo(Locatable locatable);
 

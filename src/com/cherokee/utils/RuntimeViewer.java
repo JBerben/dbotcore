@@ -29,13 +29,13 @@ public class RuntimeViewer {
 	public static void getFields(Object o, DefaultMutableTreeNode root) {
 		String name = o.getClass().getName();
 		root.setUserObject(name);
-		getFields(name, o.getClass(), o, root, 4);
+		getFields(name, o.getClass(), o, root, 3);
 	}
 
 	public static void getFields(Class<?> c, DefaultMutableTreeNode root) {
 		String name = c.getName();
 		root.setUserObject(name);
-		getFields(name, c, null, root, 4);
+		getFields(name, c, null, root, 3);
 	}
 
 	public static void getFields(String name, Class<?> klass, Object o,
@@ -67,6 +67,8 @@ public class RuntimeViewer {
 			// assures the value is primitive or a class provided by sun before
 			// displaying the value
 			if(f.getType().isPrimitive()
+					|| f.getType().isInterface()
+					|| f.getType().getName().startsWith("org.darkstorm")
 					|| (f.getType().getPackage() != null && f.getType()
 							.getPackage().getImplementationVendor() != null)) {
 				parent.add(branch);
@@ -77,7 +79,8 @@ public class RuntimeViewer {
 			} else {
 				parent.add(branch);
 				Class<?> superclass = f.getType().getSuperclass();
-				if(!(superclass.isPrimitive() || superclass.isArray()
+				if(!(superclass == null || superclass.isPrimitive()
+						|| superclass.isArray()
 						|| superclass.equals(Object.class) || (superclass
 						.getPackage() != null && superclass.getPackage()
 						.getImplementationVendor() != null))) {

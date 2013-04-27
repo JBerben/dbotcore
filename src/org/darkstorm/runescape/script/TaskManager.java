@@ -1,17 +1,17 @@
 package org.darkstorm.runescape.script;
 
-public interface TaskManager {
-	public void register(Task task);
+public interface TaskManager<T extends Task> {
+	public void register(T task);
 
-	public void deregister(Task task);
+	public void deregister(T task);
 
-	public boolean isActive(Task task);
+	public boolean isActive(T task);
 
-	public void stop(Task task);
+	public void stop(T task);
 
-	public <T extends Task> T getTask(Class<T> taskClass);
+	public <A extends T> A getTask(Class<A> taskClass);
 
-	public Task[] getRegisteredTasks();
+	public T[] getRegisteredTasks();
 
-	public Task[] getActiveTasks();
+	public T[] getActiveTasks();
 }

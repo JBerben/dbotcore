@@ -5,6 +5,7 @@ import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.*;
 import org.darkstorm.bcel.Injector;
 import org.darkstorm.runescape.event.*;
+import org.darkstorm.runescape.event.internal.CallbackEvent;
 import org.darkstorm.runescape.oldschool.OldSchoolBot;
 import org.jdom.Element;
 

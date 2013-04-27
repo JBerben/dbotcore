@@ -1,23 +1,30 @@
 package org.darkstorm.runescape;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.*;
-
+import java.awt.Frame;
 import java.text.DateFormat;
+import java.util.Date;
+import java.util.logging.*;
 
 import javax.swing.UIManager;
 
-import org.darkstorm.runescape.event.EventManager;
 import org.darkstorm.runescape.oldschool.OldSchoolBot;
 import org.darkstorm.runescape.ui.RSFrame;
 
-public final class DarkBotRS {
-	private final RSFrame ui;
-	private final List<Bot> bots;
-	private final EventManager eventManager;
+public final class DarkBotRS extends AbstractDarkBot {
+	private final RSFrame frame;
 
-	static {
+	public DarkBotRS() {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch(Exception exception) {
+			exception.printStackTrace();
+		}
+		configureLogging();
+
+		frame = new RSFrame(this);
+	}
+
+	private void configureLogging() {
 		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).getParent();
 		for(Handler handler : logger.getHandlers())
 			logger.removeHandler(handler);
@@ -51,18 +58,7 @@ public final class DarkBotRS {
 		});
 	}
 
-	public DarkBotRS() {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch(Exception exception) {
-			exception.printStackTrace();
-		}
-
-		eventManager = new EventManager();
-		ui = new RSFrame(this);
-		bots = new CopyOnWriteArrayList<Bot>();
-	}
-
+	@Override
 	public Bot createBot(GameType type) {
 		Bot bot;
 		switch(type) {
@@ -72,16 +68,13 @@ public final class DarkBotRS {
 		default:
 			return null;
 		}
-		bots.add(bot);
+		addBot(bot);
 		return bot;
 	}
 
-	public RSFrame getUI() {
-		return ui;
-	}
-
-	public EventManager getEventManager() {
-		return eventManager;
+	@Override
+	public Frame getFrame() {
+		return frame;
 	}
 
 	public static void main(String[] args) {

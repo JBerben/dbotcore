@@ -1,8 +1,7 @@
 package org.darkstorm.bcel.hooks;
 
-import java.util.*;
-
 import java.lang.reflect.Constructor;
+import java.util.*;
 
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.*;

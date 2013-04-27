@@ -1,5 +1,7 @@
 package org.darkstorm.runescape.api;
 
+import java.awt.Rectangle;
+
 import org.darkstorm.runescape.api.input.MouseTargetable;
 
 public interface Menu extends Utility {
@@ -16,6 +18,8 @@ public interface Menu extends Utility {
 	public boolean isOpen();
 
 	public void close();
+
+	public Rectangle getBounds();
 
 	public String getLastSelectedItemName();
 }

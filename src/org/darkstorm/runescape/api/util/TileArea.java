@@ -65,10 +65,10 @@ public final class TileArea implements Cloneable {
 	}
 
 	public boolean contains(Tile tile) {
-		return contains(tile.getX(), tile.getY());
+		return contains(tile.getPreciseX(), tile.getPreciseY());
 	}
 
-	public boolean contains(int x, int y) {
+	public boolean contains(double x, double y) {
 		return x >= this.x && y >= this.y && x < this.x + width
 				&& y < this.y + height;
 	}

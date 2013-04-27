@@ -2,10 +2,12 @@ package org.darkstorm.runescape.api;
 
 import java.awt.*;
 
-import org.darkstorm.runescape.api.util.Tile;
+import org.darkstorm.runescape.api.util.*;
 
 public interface Calculations extends Utility {
 	public boolean isInGameArea(Point point);
+
+	public boolean isInGameArea(int x, int y);
 
 	public Shape getGameArea();
 
@@ -21,17 +23,27 @@ public interface Calculations extends Utility {
 
 	public double random(double min, double max);
 
+	public void sleep(int time);
+
+	public void sleep(int min, int max);
+
 	public Point getTileScreenLocation(Tile tile);
 
 	public Point getTileMinimapLocation(Tile tile);
 
-	public Point getWorldScreenLocation(int x, int y, int height);
+	public Point getWorldScreenLocation(double x, double y, int height);
 
-	public Point getLimitlessWorldScreenLocation(int x, int y, int height);
+	public Point getLimitlessWorldScreenLocation(double x, double y, int height);
 
 	public Point getWorldMinimapLocation(int x, int y);
 
 	public int getTileHeight(Tile tile);
 
-	public int getWorldHeight(int x, int y, double dx, double dy, int plane);
+	public int getWorldHeight(double x, double y, int plane);
+
+	public double distanceBetween(Tile tile1, Tile tile2);
+
+	public double realDistanceBetween(Tile tile1, Tile tile2);
+
+	public TilePath generatePath(Tile start, Tile end);
 }

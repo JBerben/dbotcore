@@ -1,9 +1,8 @@
 package org.darkstorm.bcel;
 
+import java.io.*;
 import java.util.*;
 import java.util.jar.*;
-
-import java.io.*;
 
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
@@ -72,6 +71,7 @@ public class Injector {
 			deobber.finish();
 			deobberIndex++;
 		}
+		deobbers.clear();
 		status.setProgress(100);
 	}
 

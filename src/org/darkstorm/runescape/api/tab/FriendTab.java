@@ -2,7 +2,7 @@ package org.darkstorm.runescape.api.tab;
 
 import org.darkstorm.runescape.api.wrapper.InterfaceComponent;
 
-public interface FriendsListTab extends Tab {
+public interface FriendTab extends Tab {
 	public interface Friend {
 		public String getName();
 

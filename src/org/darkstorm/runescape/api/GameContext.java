@@ -6,6 +6,8 @@ import org.darkstorm.runescape.api.input.*;
 public interface GameContext {
 	public Calculations getCalculations();
 
+	public Game getGame();
+
 	public Players getPlayers();
 
 	public NPCs getNPCs();
@@ -31,6 +33,8 @@ public interface GameContext {
 	public Camera getCamera();
 
 	public Walking getWalking();
+
+	public Settings getSettings();
 
 	public Filters getFilters();
 

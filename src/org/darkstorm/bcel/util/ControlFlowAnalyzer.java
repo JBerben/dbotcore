@@ -21,44 +21,46 @@ public class ControlFlowAnalyzer {
 		constantPool = methodGen.getConstantPool();
 		list = methodGen.getInstructionList();
 		visitors = new ArrayList<ControlFlowVisitor>();
-		addVisitor(new ControlFlowVisitor() {
+		if("1".equals(""))
+			addVisitor(new ControlFlowVisitor() {
 
-			@Override
-			public void visitStored(int index, Word word, Word previous,
-					ControlFlowInstance instance) {
-			}
+				@Override
+				public void visit(InstructionHandle handle,
+						ControlFlowInstance instance) {
+					String handleString = handle.getPosition() + ": ";
+					if(handle.getInstruction() instanceof CPInstruction)
+						handleString += handle.getInstruction().toString(
+								constantPool.getConstantPool());
+					else
+						handleString += handle.getInstruction().toString(true);
+					System.err.println("  " + handleString);
+					System.err.println("    - Stack: " + instance.getStack());
+					System.err.println("    - Local: "
+							+ Arrays.toString(Arrays.copyOf(instance.localVars,
+									10)));
+				}
 
-			@Override
-			public void visitProduce(Word produced, ControlFlowInstance instance) {
-			}
+				@Override
+				public void visitConsume(InstructionHandle handle,
+						Type expected, Word consumed,
+						ControlFlowInstance instance) {
+				}
 
-			@Override
-			public void visitLoaded(int index, Word word,
-					ControlFlowInstance instance) {
-			}
+				@Override
+				public void visitProduce(InstructionHandle handle,
+						Word produced, ControlFlowInstance instance) {
+				}
 
-			@Override
-			public void visitConsume(Type expected, Word consumed,
-					ControlFlowInstance instance) {
-			}
+				@Override
+				public void visitStored(InstructionHandle handle, int index,
+						Word word, Word previous, ControlFlowInstance instance) {
+				}
 
-			@Override
-			public void visit(InstructionHandle handle,
-					ControlFlowInstance instance) {
-				String handleString = handle.getPosition() + ": ";
-				if(handle.getInstruction() instanceof CPInstruction)
-					handleString += handle.getInstruction().toString(
-							constantPool.getConstantPool());
-				else
-					handleString += handle.getInstruction().toString(true);
-				System.err.println("  " + handleString);
-				System.err.println("    - Stack: " + instance.getStack());
-				System.err
-						.println("    - Local: "
-								+ Arrays.toString(Arrays.copyOf(
-										instance.localVars, 10)));
-			}
-		});
+				@Override
+				public void visitLoaded(InstructionHandle handle, int index,
+						Word word, ControlFlowInstance instance) {
+				}
+			});
 	}
 
 	public void addVisitor(ControlFlowVisitor visitor) {
@@ -109,20 +111,20 @@ public class ControlFlowAnalyzer {
 					throw exception;
 				}
 				for(ControlFlowVisitor visitor : visitors)
-					visitor.visitConsume(consumed[j], actualConsumed[j],
-							instance);
+					visitor.visitConsume(handle, consumed[j],
+							actualConsumed[j], instance);
 			}
-			for(Word produced : calculateStackProduced(instruction,
+			for(Word produced : calculateStackProduced(instruction, handle,
 					actualConsumed, instance)) {
 				instance.getStack().push(produced);
 				for(ControlFlowVisitor visitor : visitors)
-					visitor.visitProduce(produced, instance);
+					visitor.visitProduce(handle, produced, instance);
 			}
 			int[] loaded = calculateLocalLoaded(instruction, instance);
 			for(int index : loaded) {
 				Word word = instance.getLocalVars()[index];
 				for(ControlFlowVisitor visitor : visitors)
-					visitor.visitLoaded(index, word, instance);
+					visitor.visitLoaded(handle, index, word, instance);
 			}
 			int[] stored = calculateLocalStored(instruction, instance);
 			for(int j = 0; j < stored.length; j++) {
@@ -131,12 +133,25 @@ public class ControlFlowAnalyzer {
 				Word word = actualConsumed[j];
 				instance.getLocalVars()[index] = word;
 				for(ControlFlowVisitor visitor : visitors)
-					visitor.visitStored(index, word, previous, instance);
+					visitor.visitStored(handle, index, word, previous, instance);
 			}
 
 			for(ControlFlowVisitor visitor : visitors)
 				visitor.visit(handle, instance);
-			if(instruction instanceof BranchInstruction) {
+			if(instruction instanceof Select) {
+				List<InstructionHandle> branches = instance.getBranches();
+				if(branches.contains(handle))
+					break;
+				branches.add(handle);
+				Select select = (Select) instruction;
+				for(int offset : select.getIndices()) {
+					InstructionHandle target = list.findHandle(handle
+							.getPosition() + offset);
+					int newIndex = indexOf(target);
+					analyze(new ControlFlowInstance(instance), newIndex);
+				}
+				break;
+			} else if(instruction instanceof BranchInstruction) {
 				List<InstructionHandle> branches = instance.getBranches();
 				if(branches.contains(handle))
 					break;
@@ -166,7 +181,8 @@ public class ControlFlowAnalyzer {
 	}
 
 	protected Word[] calculateStackProduced(Instruction instruction,
-			Word[] consumed, ControlFlowInstance instance) {
+			InstructionHandle handle, Word[] consumed,
+			ControlFlowInstance instance) {
 		if(!(instruction instanceof StackProducer
 				|| instruction instanceof MULTIANEWARRAY
 				|| instruction instanceof DUP_X1
@@ -177,92 +193,92 @@ public class ControlFlowAnalyzer {
 		List<Word> words = new ArrayList<Word>();
 		if(instruction instanceof MULTIANEWARRAY) {
 			words.add(new Word(((MULTIANEWARRAY) instruction)
-					.getType(constantPool), instruction));
+					.getType(constantPool), handle));
 		} else if(instruction instanceof LoadInstruction) {
 			Word localWord = instance.getLocalVars()[((LoadInstruction) instruction)
 					.getIndex()];
 			for(int j = 0; j < instruction.produceStack(constantPool); j++)
 				if(localWord != null) {
-					words.add(new Word(localWord.getValue(), instruction,
-							localWord.getSource()));
+					words.add(new Word(localWord.getValue(), handle, localWord
+							.getSource()));
 				} else
 					words.add(new Word(((LoadInstruction) instruction)
-							.getType(constantPool), instruction));
+							.getType(constantPool), handle));
 		} else if(instruction instanceof TypedInstruction) {
 			for(int j = 0; j < instruction.produceStack(constantPool); j++)
 				words.add(new Word(((TypedInstruction) instruction)
-						.getType(constantPool), instruction));
+						.getType(constantPool), handle));
 		} else if(instruction instanceof DUP) {
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
 		} else if(instruction instanceof DUP_X1) {
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
 		} else if(instruction instanceof DUP_X2) {
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
-			words.add(new Word(consumed[2].getValue(), instruction, consumed[2]
+			words.add(new Word(consumed[2].getValue(), handle, consumed[2]
 					.getSource()));
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
 		} else if(instruction instanceof DUP2) {
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
 		} else if(instruction instanceof DUP2_X1) {
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
-			words.add(new Word(consumed[2].getValue(), instruction, consumed[2]
+			words.add(new Word(consumed[2].getValue(), handle, consumed[2]
 					.getSource()));
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
 		} else if(instruction instanceof DUP2_X2) {
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
-			words.add(new Word(consumed[3].getValue(), instruction, consumed[3]
+			words.add(new Word(consumed[3].getValue(), handle, consumed[3]
 					.getSource()));
-			words.add(new Word(consumed[2].getValue(), instruction, consumed[2]
+			words.add(new Word(consumed[2].getValue(), handle, consumed[2]
 					.getSource()));
-			words.add(new Word(consumed[1].getValue(), instruction, consumed[1]
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
 					.getSource()));
-			words.add(new Word(consumed[0].getValue(), instruction, consumed[0]
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
 					.getSource()));
 		} else if(instruction instanceof FieldInstruction) {
 			for(int i = 0; i < instruction.produceStack(constantPool); i++)
 				words.add(new Word(((FieldInstruction) instruction)
-						.getFieldType(constantPool), instruction));
+						.getFieldType(constantPool), handle));
 		} else if(instruction instanceof InvokeInstruction) {
 			Type ret = ((InvokeInstruction) instruction)
 					.getReturnType(constantPool);
 			if(ret != null && ret != Type.VOID)
-				words.add(new Word(ret, instruction));
+				words.add(new Word(ret, handle));
 		} else if(instruction instanceof NEW) {
 			words.add(new Word(((NEW) instruction).getType(constantPool),
-					instruction));
+					handle));
 		} else if(instruction instanceof NEWARRAY) {
-			words.add(new Word(((NEWARRAY) instruction).getType(), instruction));
+			words.add(new Word(((NEWARRAY) instruction).getType(), handle));
 		} else if(instruction instanceof ANEWARRAY) {
 			words.add(new Word(((ANEWARRAY) instruction).getType(constantPool),
-					instruction));
+					handle));
 		} else if(instruction instanceof ArrayInstruction) {
 			Word word = consumed[1];
 			if(word != null
@@ -270,13 +286,13 @@ public class ControlFlowAnalyzer {
 					&& word.getValue() instanceof TypeWordValue
 					&& ((TypeWordValue) word.getValue()).getValue() instanceof ArrayType) {
 				words.add(new Word(((ArrayType) ((TypeWordValue) word
-						.getValue()).getValue()).getBasicType(), instruction,
-						word.getSource()));
+						.getValue()).getValue()).getBasicType(), handle, word
+						.getSource()));
 			} else {
 				System.out.println("Wrong variable found on stack: " + word
 						+ " " + instance.getStack());
 				words.add(new Word(((ArrayInstruction) instruction)
-						.getType(constantPool), instruction));
+						.getType(constantPool), handle));
 			}
 		} else if(instruction instanceof ConversionInstruction) {
 			if(instruction instanceof L2I || instruction instanceof D2I
@@ -290,24 +306,29 @@ public class ControlFlowAnalyzer {
 					&& word.getValue() instanceof TypeWordValue
 					&& ((TypeWordValue) word.getValue()).getValue() instanceof BasicType) {
 				for(int j = 0; j < instruction.produceStack(constantPool); j++)
-					words.add(new Word(word.getValue(), instruction, word
+					words.add(new Word(word.getValue(), handle, word
 							.getSource()));
 			} else
 				for(int j = 0; j < instruction.produceStack(constantPool); j++)
 					words.add(new Word(((ConversionInstruction) instruction)
-							.getType(constantPool), instruction));
+							.getType(constantPool), handle));
 		} else if(instruction instanceof ARRAYLENGTH) {
 			Word word = consumed[0];
 			if(word != null
 					&& word.getValue() != null
 					&& word.getValue() instanceof TypeWordValue
 					&& ((TypeWordValue) word.getValue()).getValue() instanceof ArrayType) {
-				words.add(new Word(Type.INT, instruction, word.getSource()));
+				words.add(new Word(Type.INT, handle, word.getSource()));
 			} else {
 				System.out.println("Wrong variable found on stack: " + word
 						+ " " + instance.getStack());
-				words.add(new Word(Type.INT, instruction));
+				words.add(new Word(Type.INT, handle));
 			}
+		} else if(instruction instanceof SWAP) {
+			words.add(new Word(consumed[0].getValue(), handle, consumed[0]
+					.getSource()));
+			words.add(new Word(consumed[1].getValue(), handle, consumed[1]
+					.getSource()));
 		} else
 			System.out.println("Stack producer: "
 					+ instruction.getClass().getSimpleName() + " ("
@@ -319,7 +340,7 @@ public class ControlFlowAnalyzer {
 					+ instruction.getClass().getSimpleName() + " (expected: "
 					+ expected + ", found: " + actual + ")");
 			for(int i = 0; i < expected - actual; i++)
-				words.add(new Word((WordValue) null, instruction));
+				words.add(new Word((WordValue) null, handle));
 		}
 		return words.toArray(new Word[words.size()]);
 	}
@@ -394,11 +415,12 @@ public class ControlFlowAnalyzer {
 		private final WordValue value;
 		private final WordSource source;
 
-		private Word(Type type, Instruction source) {
+		private Word(Type type, InstructionHandle source) {
 			this(new TypeWordValue(type), new WordSource(source));
 		}
 
-		private Word(Type type, Instruction source, Instruction parent) {
+		private Word(Type type, InstructionHandle source,
+				InstructionHandle parent) {
 			this(new TypeWordValue(type), new WordSource(source,
 					new WordSource(parent)));
 		}
@@ -407,15 +429,16 @@ public class ControlFlowAnalyzer {
 			this(new TypeWordValue(type), source);
 		}
 
-		private Word(Type type, Instruction source, WordSource parent) {
+		private Word(Type type, InstructionHandle source, WordSource parent) {
 			this(new TypeWordValue(type), new WordSource(source, parent));
 		}
 
-		private Word(Type[] array, Instruction source) {
+		private Word(Type[] array, InstructionHandle source) {
 			this(new ArrayWordValue(array), new WordSource(source));
 		}
 
-		private Word(Type[] array, Instruction source, Instruction parent) {
+		private Word(Type[] array, InstructionHandle source,
+				InstructionHandle parent) {
 			this(new ArrayWordValue(array), new WordSource(source,
 					new WordSource(parent)));
 		}
@@ -424,19 +447,21 @@ public class ControlFlowAnalyzer {
 			this(new ArrayWordValue(array), source);
 		}
 
-		private Word(Type[] array, Instruction source, WordSource parent) {
+		private Word(Type[] array, InstructionHandle source, WordSource parent) {
 			this(new ArrayWordValue(array), new WordSource(source, parent));
 		}
 
-		private Word(WordValue value, Instruction source) {
+		private Word(WordValue value, InstructionHandle source) {
 			this(value, new WordSource(source));
 		}
 
-		private Word(WordValue value, Instruction source, Instruction parent) {
+		private Word(WordValue value, InstructionHandle source,
+				InstructionHandle parent) {
 			this(value, new WordSource(source, new WordSource(parent)));
 		}
 
-		private Word(WordValue value, Instruction source, WordSource parent) {
+		private Word(WordValue value, InstructionHandle source,
+				WordSource parent) {
 			this(value, new WordSource(source, parent));
 		}
 
@@ -507,20 +532,20 @@ public class ControlFlowAnalyzer {
 	}
 
 	public class WordSource {
-		private final Instruction instruction;
+		private final InstructionHandle handle;
 		private final WordSource parent;
 
-		private WordSource(Instruction instruction) {
-			this(instruction, null);
+		private WordSource(InstructionHandle handle) {
+			this(handle, null);
 		}
 
-		private WordSource(Instruction instruction, WordSource parent) {
-			this.instruction = instruction;
+		private WordSource(InstructionHandle handle, WordSource parent) {
+			this.handle = handle;
 			this.parent = parent;
 		}
 
-		public Instruction getInstruction() {
-			return instruction;
+		public InstructionHandle getHandle() {
+			return handle;
 		}
 
 		public WordSource getParent() {
@@ -530,23 +555,25 @@ public class ControlFlowAnalyzer {
 		@Override
 		public String toString() {
 			if(parent != null)
-				return instruction.getName() + "<-" + parent.toString();
-			return instruction.getName();
+				return handle.getInstruction().getName() + "<-"
+						+ parent.toString();
+			return handle.getInstruction().getName();
 		}
 	}
 
 	public static interface ControlFlowVisitor {
 		public void visit(InstructionHandle handle, ControlFlowInstance instance);
 
-		public void visitConsume(Type expected, Word consumed,
+		public void visitConsume(InstructionHandle handle, Type expected,
+				Word consumed, ControlFlowInstance instance);
+
+		public void visitProduce(InstructionHandle handle, Word produced,
 				ControlFlowInstance instance);
 
-		public void visitProduce(Word produced, ControlFlowInstance instance);
+		public void visitStored(InstructionHandle handle, int index, Word word,
+				Word previous, ControlFlowInstance instance);
 
-		public void visitStored(int index, Word word, Word previous,
-				ControlFlowInstance instance);
-
-		public void visitLoaded(int index, Word word,
+		public void visitLoaded(InstructionHandle handle, int index, Word word,
 				ControlFlowInstance instance);
 	}
 }

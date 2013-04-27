@@ -8,14 +8,16 @@ import java.lang.reflect.Method;
 
 import javax.swing.Timer;
 
-import org.darkstorm.runescape.event.PaintEvent;
+import org.darkstorm.runescape.InputState;
+import org.darkstorm.runescape.event.game.PaintEvent;
 
 @SuppressWarnings("serial")
 public class BotCanvas extends Canvas implements ComponentListener,
 		MouseListener, MouseMotionListener, KeyListener {
 	private final OldSchoolBot bot;
 	private final Timer timer;
-	private final BufferedImage intermediateImage;
+
+	// private final BufferedImage intermediateImage;
 
 	public BotCanvas(OldSchoolBot bot) {
 		this.bot = bot;
@@ -24,8 +26,8 @@ public class BotCanvas extends Canvas implements ComponentListener,
 		setPreferredSize(new Dimension(gameImage.getWidth(),
 				gameImage.getHeight()));
 		setSize(getPreferredSize());
-		intermediateImage = new BufferedImage(gameImage.getWidth(),
-				gameImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+		// intermediateImage = new BufferedImage(gameImage.getWidth(),
+		// gameImage.getHeight(), BufferedImage.TYPE_INT_RGB);
 
 		timer = new Timer(0, new ActionListener() {
 
@@ -61,36 +63,36 @@ public class BotCanvas extends Canvas implements ComponentListener,
 		try {
 			Rectangle r = g.getClipBounds();
 
-			BufferedImage botImage = bot.getBotImage();
+			// BufferedImage botImage = bot.getBotImage();
 			BufferedImage gameImage = bot.getGameImage();
-
-			Graphics graphics = intermediateImage.getGraphics();
-			graphics.setColor(Color.BLACK);
-			graphics.fillRect(0, 0, intermediateImage.getWidth(),
-					intermediateImage.getHeight());
+			// graphics.setColor(Color.BLACK);
+			// graphics.fillRect(0, 0, intermediateImage.getWidth(),
+			// intermediateImage.getHeight());
 
 			if(bot.getGame() != null) {
-				int width = botImage.getWidth(), height = botImage.getHeight();
-				WritableRaster raster = botImage.getRaster();
-				raster.setPixels(0, 0, width, height, new int[width * height
-						* raster.getNumBands()]);
-				Graphics botGraphics = botImage.getGraphics();
+				Graphics graphics = gameImage.createGraphics();
+				int width = gameImage.getWidth(), height = gameImage
+						.getHeight();
+				// WritableRaster raster = gameImage.getRaster();
+				// raster.setPixels(0, 0, width, height, new int[width * height
+				// * raster.getNumBands()]);
+				// Graphics botGraphics = botImage.getGraphics();
 				bot.getEventManager().sendEvent(
-						new PaintEvent(botGraphics, width, height));
-				botGraphics.dispose();
+						new PaintEvent(graphics, width, height));
+				// botGraphics.dispose();
 
-				gameImage.flush();
-				graphics.drawImage(gameImage, r.x, r.y, r.x + r.width, r.y
-						+ r.height, r.x, r.y, r.x + r.width, r.y + r.height,
-						null);
+				// gameImage.flush();
+				// graphics.drawImage(gameImage, r.x, r.y, r.x + r.width, r.y
+				// + r.height, r.x, r.y, r.x + r.width, r.y + r.height,
+				// null);
 			}
 
-			botImage.flush();
-			graphics.drawImage(botImage, r.x, r.y, r.x + r.width, r.y
-					+ r.height, r.x, r.y, r.x + r.width, r.y + r.height, null);
-			intermediateImage.flush();
-			g.drawImage(intermediateImage, r.x, r.y, r.x + r.width, r.y
-					+ r.height, r.x, r.y, r.x + r.width, r.y + r.height, null);
+			gameImage.flush();
+			// graphics.drawImage(botImage, r.x, r.y, r.x + r.width, r.y
+			// + r.height, r.x, r.y, r.x + r.width, r.y + r.height, null);
+			// intermediateImage.flush();
+			g.drawImage(gameImage, r.x, r.y, r.x + r.width, r.y + r.height,
+					r.x, r.y, r.x + r.width, r.y + r.height, null);
 		} catch(RasterFormatException ignored) {}
 	}
 
@@ -116,55 +118,65 @@ public class BotCanvas extends Canvas implements ComponentListener,
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		handleEvent(e);
+		if(!bot.getInputState().equals(InputState.NONE))
+			handleEvent(e);
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		handleEvent(e);
+		if(!bot.getInputState().equals(InputState.NONE))
+			handleEvent(e);
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		handleEvent(e);
+		if(!bot.getInputState().equals(InputState.NONE))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		handleEvent(e);
+		if(bot.getInputState().equals(InputState.MOUSE_KEYBOARD))
+			handleEvent(e);
 	}
 
-	private void handleEvent(AWTEvent e) {
+	public void handleEvent(InputEvent e) {
 		Applet game = bot.getGame();
 		if(game == null)
 			return;

@@ -25,6 +25,8 @@ public interface Skills extends Utility {
 
 	public int getLevel(Skill skill);
 
+	public int getActualLevel(Skill skill);
+
 	public int getExperienceToNextLevel(Skill skill);
 
 	public int getExperienceToLevel(Skill skill, int level);
