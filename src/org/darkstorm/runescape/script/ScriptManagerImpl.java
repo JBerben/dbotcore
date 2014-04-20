@@ -10,7 +10,7 @@ import java.util.jar.*;
 import org.darkstorm.runescape.Bot;
 import org.darkstorm.runescape.util.CustomClassLoader;
 
-import com.sun.org.apache.bcel.internal.classfile.*;
+import org.apache.bcel.classfile.*;
 
 public class ScriptManagerImpl implements ScriptManager {
 	private final Bot bot;
@@ -45,7 +45,7 @@ public class ScriptManagerImpl implements ScriptManager {
 						Class<?> c = classLoader.loadClass(className);
 						Script script = defineScript(c);
 						scripts.add(script);
-					} catch(Exception exception1) {}
+					} catch(Throwable exception1) {}
 				}
 			}
 			classLoader.close();
@@ -54,6 +54,7 @@ public class ScriptManagerImpl implements ScriptManager {
 		return loadScripts(url.openStream());
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	public Script[] loadScripts(InputStream in) throws ScriptLoadException,
 			IOException {
@@ -75,7 +76,9 @@ public class ScriptManagerImpl implements ScriptManager {
 				Class<?> c = classLoader.loadClass(className);
 				Script script = defineScript(c);
 				scripts.add(script);
-			} catch(ClassNotFoundException exception) {
+			} catch(ClassFormatException exception) {
+				throw exception;
+			} catch(Throwable exception) {
 				classLoader.close();
 				throw new ScriptLoadException(exception);
 			}
@@ -106,9 +109,7 @@ public class ScriptManagerImpl implements ScriptManager {
 					Class<?> c = classLoader.loadClass(className);
 					Script script = defineScript(c);
 					scripts.add(script);
-				} catch(Exception exception1) {
-					exception1.printStackTrace();
-				}
+				} catch(Throwable exception1) {}
 		}
 		classLoader.close();
 		synchronized(this.scripts) {

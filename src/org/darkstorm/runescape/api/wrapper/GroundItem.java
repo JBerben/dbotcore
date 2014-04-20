@@ -1,6 +1,8 @@
 package org.darkstorm.runescape.api.wrapper;
 
-public interface GroundItem extends Animable {
+import org.darkstorm.runescape.api.util.Nameable;
+
+public interface GroundItem extends Animable, Nameable {
 	public Model getModel(GroundItemModelLayer layer);
 
 	public static enum GroundItemModelLayer {

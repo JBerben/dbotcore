@@ -1,10 +1,9 @@
 package org.darkstorm.runescape.util;
 
-import java.util.*;
-
 import java.io.*;
 import java.net.*;
 import java.security.ProtectionDomain;
+import java.util.*;
 
 public class CustomClassLoader extends URLClassLoader {
 	private Map<String, byte[]> classes = new HashMap<String, byte[]>();
@@ -59,29 +58,32 @@ public class CustomClassLoader extends URLClassLoader {
 			synchronized(resources) {
 				final byte[] data = resources.get(name);
 				try {
-					URL url = new URL(null, name, new URLStreamHandler() {
-
-						@Override
-						protected URLConnection openConnection(URL u)
-								throws IOException {
-							URLConnection connection = new URLConnection(u) {
-								private ByteArrayInputStream in;
+					URL url = new URL(new URL("file:/asdf"), name,
+							new URLStreamHandler() {
 
 								@Override
-								public void connect() throws IOException {
-									in = new ByteArrayInputStream(data);
-								}
-
-								@Override
-								public InputStream getInputStream()
+								protected URLConnection openConnection(URL u)
 										throws IOException {
-									return in;
+									URLConnection connection = new URLConnection(
+											u) {
+										private ByteArrayInputStream in;
+
+										@Override
+										public void connect()
+												throws IOException {
+											in = new ByteArrayInputStream(data);
+										}
+
+										@Override
+										public InputStream getInputStream()
+												throws IOException {
+											return in;
+										}
+									};
+									connection.connect();
+									return connection;
 								}
-							};
-							connection.connect();
-							return connection;
-						}
-					});
+							});
 					return url;
 				} catch(Exception exception) {
 					exception.printStackTrace();

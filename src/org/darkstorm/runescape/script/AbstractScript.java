@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 import java.util.concurrent.locks.*;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 import org.darkstorm.runescape.Bot;
 import org.darkstorm.runescape.api.*;
@@ -73,6 +73,10 @@ public abstract class AbstractScript implements Script, Runnable,
 		filters = context.getFilters();
 
 		logger = Logger.getLogger(getManifest().name());
+		for(Handler handler : logger.getHandlers())
+			logger.removeHandler(handler);
+		for(Handler handler : bot.getLogger().getHandlers())
+			logger.addHandler(handler);
 
 		service = Executors.newCachedThreadPool();
 		future = new AtomicReference<Future<?>>();

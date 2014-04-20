@@ -13,6 +13,8 @@ public interface Filters extends Utility {
 
 	public Filter<GroundItem> ground(int... ids);
 
+	public Filter<GroundItem> ground(String... names);
+
 	public Filter<GameObject> object(int... ids);
 
 	public Filter<GameObject> object(GameObjectType... types);
@@ -29,11 +31,9 @@ public interface Filters extends Utility {
 
 	public Filter<InterfaceComponent> component(String... text);
 
-	public Filter<InterfaceComponent> component(Filter<Interface> filter,
-			int... childIds);
+	public Filter<InterfaceComponent> component(Filter<Interface> filter, int... childIds);
 
-	public Filter<InterfaceComponent> component(Filter<Interface> filter,
-			String... text);
+	public Filter<InterfaceComponent> component(Filter<Interface> filter, String... text);
 
 	public <T extends Identifiable> Filter<T> id(int... id);
 
@@ -57,6 +57,5 @@ public interface Filters extends Utility {
 
 	public <T> Filter<T> chain(Filter<T> filter1, Filter<T> filter2);
 
-	public <T> Filter<T> chain(
-			@SuppressWarnings("unchecked") Filter<T>... filters);
+	public <T> Filter<T> chain(@SuppressWarnings("unchecked") Filter<T>... filters);
 }
